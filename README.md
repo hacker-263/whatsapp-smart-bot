@@ -1,8 +1,25 @@
-# Smart WhatsApp Ordering & Payment Assistant
+# 🤖 Smart WhatsApp Bot Platform - Complete Edition
 
-A comprehensive multi-tenant platform for SMEs in Zimbabwe and South Africa to manage WhatsApp-based ordering and payments.
+## ✨ What's New (v2.0)
 
-## 🚀 Features
+This is a **production-ready** WhatsApp bot platform with:
+
+✅ **Smart Message Filtering** - Ignores random text, only responds to commands/intents  
+✅ **Conversation Memory** - Tracks user context across messages  
+✅ **Interactive UI** - WhatsApp buttons and list menus  
+✅ **Self-Testing Mode** - Test bot on your own number including groups  
+✅ **User Registration** - Merchants, customers, admins register via bot  
+✅ **Smart Cart Summaries** - Auto-formatted cart with totals  
+✅ **Preference Memory** - Remembers customer favorites  
+✅ **Smart Error Handling** - User-friendly error messages  
+✅ **Active API Server** - REST endpoints for web integration  
+✅ **Local Docker** - Complete local development environment  
+✅ **Group Support** - Use commands in WhatsApp groups  
+✅ **Order Notifications** - Updates sent to customers  
+
+---
+
+## 🚀 Quick Start (5 Minutes)
 
 ### WhatsApp Bot Integration
 - **Real WhatsApp Bot** using whatsapp-web.js

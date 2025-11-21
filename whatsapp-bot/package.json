@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node enhanced-bot.js",
     "dev": "nodemon enhanced-bot.js",
+    "api": "node api-server.js",
+    "api:dev": "nodemon api-server.js",
+    "all": "concurrently \"npm run start\" \"npm run api\"",
     "bot:legacy": "node bot.js",
     "bot:dev": "nodemon enhanced-bot.js"
   },
