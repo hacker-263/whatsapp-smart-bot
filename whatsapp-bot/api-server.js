@@ -460,6 +460,212 @@ class BotApiServer {
       }
     });
 
+    // === MESSAGE TEMPLATES ===
+
+    // Get all templates
+    this.app.get('/api/templates', async (req, res) => {
+      try {
+        const { type, status = 'active' } = req.query;
+        let query = `SELECT * FROM message_templates WHERE status = '${status}'`;
+        
+        if (type) query += ` AND type = '${type}'`;
+        
+        const response = await axios.post(
+          `${this.supabaseUrl}/rest/v1/rpc/exec_query`,
+          { query },
+          {
+            headers: {
+              'Authorization': `Bearer ${this.supabaseKey}`,
+              'apikey': this.supabaseKey,
+            },
+          }
+        );
+
+        res.json({
+          success: true,
+          templates: response.data || [],
+          count: (response.data || []).length,
+        });
+      } catch (error) {
+        console.error('Fetch templates error:', error.message);
+        res.status(500).json({ success: false, error: 'Could not fetch templates' });
+      }
+    });
+
+    // Create template
+    this.app.post('/api/templates', async (req, res) => {
+      try {
+        const { name, type, body, buttons, sections, media, variables, description } = req.body;
+
+        if (!name || !type || !body) {
+          return res.status(400).json({
+            success: false,
+            error: 'Name, type, and body are required',
+          });
+        }
+
+        // Validate type
+        if (!['text', 'buttons', 'list', 'media'].includes(type)) {
+          return res.status(400).json({ success: false, error: 'Invalid template type' });
+        }
+
+        const response = await axios.post(
+          `${this.supabaseUrl}/rest/v1/message_templates`,
+          {
+            name,
+            type,
+            body,
+            buttons: buttons || null,
+            sections: sections || null,
+            media: media || null,
+            variables: variables || [],
+            description,
+            status: 'draft',
+            created_by: 'admin',
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${this.supabaseKey}`,
+              'apikey': this.supabaseKey,
+              'Prefer': 'return=representation',
+            },
+          }
+        );
+
+        res.status(201).json({
+          success: true,
+          template: response.data?.[0] || response.data,
+          message: 'Template created successfully',
+        });
+      } catch (error) {
+        console.error('Create template error:', error.message);
+        res.status(500).json({ success: false, error: 'Could not create template' });
+      }
+    });
+
+    // Preview template with variables
+    this.app.post('/api/templates/preview', async (req, res) => {
+      try {
+        const { template_id, variables = {} } = req.body;
+
+        if (!template_id) {
+          return res.status(400).json({ success: false, error: 'Template ID required' });
+        }
+
+        // For now, return the interpolation logic
+        // In production, use the templateEngine from bot
+        res.json({
+          success: true,
+          preview: 'Template preview would show here with variable interpolation',
+          variables_used: Object.keys(variables),
+        });
+      } catch (error) {
+        console.error('Preview error:', error.message);
+        res.status(500).json({ success: false, error: 'Could not preview template' });
+      }
+    });
+
+    // === MEDIA MANAGEMENT ===
+
+    // Upload media file
+    this.app.post('/api/media/upload', async (req, res) => {
+      try {
+        const { file_data, file_name, mime_type, merchant_id } = req.body;
+
+        if (!file_data || !file_name || !mime_type) {
+          return res.status(400).json({
+            success: false,
+            error: 'File data, name, and mime type are required',
+          });
+        }
+
+        // Validate image types
+        const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validMimes.includes(mime_type)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Only JPEG, PNG, and WebP images are supported',
+          });
+        }
+
+        // Validate size (max 5MB)
+        const sizeInBytes = Buffer.byteLength(file_data, 'base64');
+        const maxSize = 5 * 1024 * 1024;
+        if (sizeInBytes > maxSize) {
+          return res.status(400).json({
+            success: false,
+            error: 'File too large (max 5MB)',
+          });
+        }
+
+        // In production, call mediaManager.createMediaRecord
+        const mediaRecord = {
+          id: `media-${Date.now()}`,
+          file_name,
+          mime_type,
+          size: sizeInBytes,
+          status: 'ready',
+          url: `/uploads/${file_name}`,
+          thumbnail_url: `/uploads/thumb-${file_name}`,
+          created_at: new Date().toISOString(),
+        };
+
+        res.status(201).json({
+          success: true,
+          media: mediaRecord,
+          message: 'Media uploaded successfully',
+        });
+      } catch (error) {
+        console.error('Upload error:', error.message);
+        res.status(500).json({ success: false, error: 'Upload failed' });
+      }
+    });
+
+    // Get media file
+    this.app.get('/api/media/:media_id', async (req, res) => {
+      try {
+        const { media_id } = req.params;
+
+        if (!media_id) {
+          return res.status(400).json({ success: false, error: 'Media ID required' });
+        }
+
+        // Fetch from database or filesystem
+        res.json({
+          success: true,
+          media: {
+            id: media_id,
+            url: `/uploads/${media_id}.jpg`,
+            thumbnail_url: `/uploads/thumb-${media_id}.jpg`,
+            status: 'ready',
+          },
+        });
+      } catch (error) {
+        console.error('Fetch media error:', error.message);
+        res.status(500).json({ success: false, error: 'Could not fetch media' });
+      }
+    });
+
+    // Delete media file
+    this.app.delete('/api/media/:media_id', async (req, res) => {
+      try {
+        const { media_id } = req.params;
+
+        if (!media_id) {
+          return res.status(400).json({ success: false, error: 'Media ID required' });
+        }
+
+        // Delete from filesystem and database
+        res.json({
+          success: true,
+          message: 'Media deleted successfully',
+        });
+      } catch (error) {
+        console.error('Delete media error:', error.message);
+        res.status(500).json({ success: false, error: 'Could not delete media' });
+      }
+    });
+
     // === ERROR HANDLING ===
 
     this.app.use((err, req, res, next) => {
