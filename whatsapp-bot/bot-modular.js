@@ -33,6 +33,7 @@ const logger = new Logger('MainBot');
 class SmartWhatsAppBotModular {
   constructor() {
     this.sock = null;
+    this.qrShown = false;
     this.store = makeInMemoryStore({
       logger: P().child({ level: 'silent', stream: 'store' }),
     });
@@ -176,11 +177,17 @@ class SmartWhatsAppBotModular {
     this.sock.ev.on('connection.update', (update) => {
       const { connection, lastDisconnect, qr } = update;
 
-      if (qr) {
-        logger.info('📱 Scan QR code:');
+      if (qr && !this.qrShown) {
+        this.qrShown = true;
+        logger.info('📱 Scan QR code with WhatsApp:');
         const qrcodeTerminal = require('qrcode-terminal');
         qrcodeTerminal.generate(qr, { small: true });
         console.log(chalk.green('✨ Waiting for connection...\n'));
+      }
+
+      // Only restart on actual disconnection, not on initial connection
+      if (connection === 'close') {
+        this.qrShown = false;
       }
 
       connectionHandler.handleConnectionUpdate(update, () => this.startBot());
