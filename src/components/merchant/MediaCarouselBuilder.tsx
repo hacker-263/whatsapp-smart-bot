@@ -42,7 +42,7 @@ export default function MediaCarouselBuilder({ onClose, onSave }: MediaCarouselB
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const preview = await getCompressionPreview(file);
+        const preview = await getCompressionPreview(file.size);
         if (preview?.dataUrl) {
           setCurrentItem({ ...currentItem, imageUrl: preview.dataUrl });
         }

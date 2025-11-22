@@ -2,15 +2,17 @@
   "name": "smart-whatsapp-bot",
   "version": "1.0.0",
   "description": "Smart WhatsApp Ordering Bot for SMEs using Baileys",
-  "main": "bot.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node bot-modular.js",
-    "dev": "nodemon bot-modular.js",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
     "api": "node api-server.js",
     "api:dev": "nodemon api-server.js",
-    "all": "concurrently \"npm run start\" \"npm run api\"",
+    "all": "concurrently \"npm run dev\" \"npm run api:dev\"",
     "bot:legacy": "node enhanced-bot.js",
-    "bot:dev": "nodemon bot-modular.js"
+    "build": "echo 'Bot is JavaScript-based, no build required'",
+    "test": "echo 'No tests configured yet'",
+    "lint": "eslint src/**/*.js"
   },
   "dependencies": {
     "@adiwajshing/keyed-db": "^0.2.4",
