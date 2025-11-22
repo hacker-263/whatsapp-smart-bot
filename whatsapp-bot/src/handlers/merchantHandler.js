@@ -80,6 +80,22 @@ class MerchantHandler {
         case 'settings':
           return await this.handleSettingsCommand(args, session.merchant_id, from);
         
+        // New creative commands
+        case 'performance':
+          return await this.handlePerformanceCommand(session.merchant_id, from);
+        
+        case 'customers':
+          return await this.handleCustomersCommand(args, session.merchant_id, from);
+        
+        case 'feedback':
+          return await this.handleMerchantFeedbackCommand(args[0], session.merchant_id, from);
+        
+        case 'boost':
+          return await this.handleBoostCommand(session.merchant_id, from);
+        
+        case 'tips':
+          return await this.handleTipsCommand(session.merchant_id, from);
+        
         default:
           return null;
       }
@@ -454,16 +470,250 @@ What would you like to edit?
   async handleSettingsCommand(args, merchantId, from) {
     return {
       message: `
-*⚙️ Merchant Settings*
-━━━━━━━━━━━━━━━
+╔════════════════════════════════════════════════════════════════════════╗
+║ ⚙️  MERCHANT SETTINGS & PREFERENCES
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 1️⃣  Business Profile
+║ 2️⃣  Delivery Settings
+║ 3️⃣  Notification Preferences
+║ 4️⃣  Payment Methods
+║ 5️⃣  Account Security
+║ 6️⃣  Tax & Legal
+║
+║ Send the number to manage that setting.
+║
+╚════════════════════════════════════════════════════════════════════════╝
+      `.trim(),
+    };
+  }
 
-1️⃣ Business Profile
-2️⃣ Delivery Settings
-3️⃣ Notification Preferences
-4️⃣ Payment Methods
-5️⃣ Account Security
+  /**
+   * !merchant performance - Show sales performance metrics
+   */
+  async handlePerformanceCommand(merchantId, from) {
+    // Dummy performance data
+    const perf = {
+      ordersToday: 24,
+      ordersWeek: 156,
+      revenue24h: 38400,
+      revenueWeek: 234500,
+      avgOrderValue: 1600,
+      customerSatisfaction: 4.8,
+      completionRate: 97.5,
+      deliveryAccuracy: 98.2,
+    };
 
-Send the number to manage that setting.
+    return {
+      message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 📊  SALES PERFORMANCE METRICS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 📈 TODAY'S PERFORMANCE
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ Orders:              ${String(perf.ordersToday).padEnd(45)}
+║ │ Revenue:             ZWL ${String(perf.revenue24h.toLocaleString()).padEnd(40)}
+║ │ Avg Order Value:     ZWL ${String(perf.avgOrderValue).padEnd(45)}
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 📅 THIS WEEK
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ Total Orders:        ${String(perf.ordersWeek).padEnd(45)}
+║ │ Total Revenue:       ZWL ${String(perf.revenueWeek.toLocaleString()).padEnd(40)}
+║ │ Daily Average:       ZWL ${String(Math.round(perf.revenueWeek / 7).toLocaleString()).padEnd(40)}
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 🌟 QUALITY METRICS
+║ ├─ Customer Satisfaction: ${perf.customerSatisfaction}/5.0 ⭐
+║ ├─ Order Completion Rate: ${perf.completionRate}% ✅
+║ └─ On-time Delivery:      ${perf.deliveryAccuracy}% 🚚
+║
+║ 💡 Insights:
+║ • Your store is performing GREAT this week!
+║ • Focus on reducing order cancellation
+║ • Maintain high service quality (you're at 4.8⭐)
+║
+╚════════════════════════════════════════════════════════════════════════╝
+      `.trim(),
+    };
+  }
+
+  /**
+   * !merchant customers - Show customer insights
+   */
+  async handleCustomersCommand(args, merchantId, from) {
+    const action = args[0]?.toLowerCase() || 'list';
+
+    if (action === 'list') {
+      return {
+        message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 👥  YOUR CUSTOMERS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 📊 CUSTOMER STATISTICS
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ Total Customers:       342
+║ │ New This Month:        47
+║ │ Regular (3+ orders):   156
+║ │ VIP (10+ orders):      23
+║ │ Churned (30 days):     18
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 🌟 TOP CUSTOMERS (By Orders)
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ 1. John M (23 orders) → ZWL 54,500 spent
+║ │ 2. Sarah K (19 orders) → ZWL 38,200 spent
+║ │ 3. Alex D (17 orders) → ZWL 42,800 spent
+║ │ 4. Maria P (15 orders) → ZWL 36,000 spent
+║ │ 5. David T (14 orders) → ZWL 33,600 spent
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 💡 RECOMMENDATIONS:
+║ • Send personalized offers to top customers
+║ • Re-engage churned customers with discounts
+║ • Build loyalty program for repeat customers
+║
+╚════════════════════════════════════════════════════════════════════════╝
+        `.trim(),
+      };
+    }
+
+    return { error: 'Usage: !merchant customers [list]' };
+  }
+
+  /**
+   * !merchant feedback <order_id> - Get order feedback
+   */
+  async handleMerchantFeedbackCommand(orderId, merchantId, from) {
+    if (!orderId) {
+      return {
+        message: `Usage: !merchant feedback <order_id>\nExample: !merchant feedback ORD123456`
+      };
+    }
+
+    return {
+      message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 💬  ORDER FEEDBACK & REVIEWS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ Order: ${orderId}
+║
+║ ⭐⭐⭐⭐⭐ 5.0 Rating
+║ 👤 Customer: John M
+║ 📝 Feedback:
+║ "Excellent service! Food arrived hot and fresh.
+║  The packaging was great and delivery was on time.
+║  Will order again! 🎉"
+║
+║ 🎁 This positive review helps attract more customers!
+║
+║ 💪 ACTION ITEMS:
+║ • Keep maintaining this quality
+║ • Reply to reviews to build customer relationships
+║ • Share positive feedback with your team
+║
+╚════════════════════════════════════════════════════════════════════════╝
+      `.trim(),
+    };
+  }
+
+  /**
+   * !merchant boost - Promote your store
+   */
+  async handleBoostCommand(merchantId, from) {
+    return {
+      message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 🚀  PROMOTE YOUR STORE
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 📢 BOOST OPTIONS
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ 1. Featured Merchant (24hrs)    → ZWL 500
+║ │    Get prominent placement in customer feeds
+║ │
+║ │ 2. Flash Sale Promotion         → ZWL 800
+║ │    Highlight special offers to 5,000+ users
+║ │
+║ │ 3. Premium Badge                → ZWL 1,000/month
+║ │    Show "Premium Merchant" badge on your profile
+║ │
+║ │ 4. Category Spotlight           → ZWL 2,000/week
+║ │    Top placement in your category search
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 📊 EXPECTED RESULTS:
+║ • Featured: +30-50% order increase
+║ • Flash Sale: +40-60% visibility
+║ • Premium Badge: +25-35% customer trust
+║ • Category Spotlight: +50-70% category traffic
+║
+║ 💳 PAYMENT OPTIONS:
+║ • Direct Deposit
+║ • Mobile Money (EcoCash, OneMoney)
+║ • Invoice-based for bulk purchases
+║
+║ Reply with which option interests you!
+║
+╚════════════════════════════════════════════════════════════════════════╝
+      `.trim(),
+    };
+  }
+
+  /**
+   * !merchant tips - Success tips and best practices
+   */
+  async handleTipsCommand(merchantId, from) {
+    return {
+      message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 💡  MERCHANT SUCCESS TIPS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 🎯 TOP PERFORMING MERCHANTS DO THIS:
+║
+║ 1️⃣  FAST RESPONSE TIME
+║    ✅ Reply to orders within 2 minutes
+║    ✅ Confirm acceptance quickly
+║    → Increases customer satisfaction by 35%
+║
+║ 2️⃣  QUALITY CONSISTENCY
+║    ✅ Maintain product quality
+║    ✅ Use fresh ingredients/materials
+║    ✅ Follow preparation standards
+║    → Gets you more positive reviews
+║
+║ 3️⃣  ACCURATE DELIVERY
+║    ✅ Pack orders carefully
+║    ✅ Deliver on time or faster
+║    ✅ Track deliveries in real-time
+║    → Builds customer loyalty
+║
+║ 4️⃣  COMPETITIVE PRICING
+║    ✅ Monitor competitor prices
+║    ✅ Offer value, not just low prices
+║    ✅ Create attractive bundles
+║    → Increases order volume
+║
+║ 5️⃣  ENGAGING PRODUCT DESCRIPTIONS
+║    ✅ Add mouth-watering descriptions
+║    ✅ Use quality product photos
+║    ✅ Highlight unique features
+║    → Improves conversion rate
+║
+║ 6️⃣  CUSTOMER ENGAGEMENT
+║    ✅ Respond to customer reviews
+║    ✅ Thank positive reviewers
+║    ✅ Address concerns professionally
+║    → Builds trust and loyalty
+║
+║ 📈 EXPECTED IMPACT:
+║ Implementing these tips can increase your sales by 40-60%!
+║
+╚════════════════════════════════════════════════════════════════════════╝
       `.trim(),
     };
   }

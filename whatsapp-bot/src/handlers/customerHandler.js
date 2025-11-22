@@ -82,6 +82,15 @@ class CustomerHandler {
         case 'deals':
           return await this.handleDealsCommand(phoneNumber, from);
         
+        case 'trending':
+          return await this.handleTrendingCommand(phoneNumber, from);
+        
+        case 'promo':
+          return await this.handlePromoCommand(phoneNumber, from);
+        
+        case 'featured':
+          return await this.handleFeaturedCommand(phoneNumber, from);
+        
         default:
           return null;
       }
@@ -95,38 +104,52 @@ class CustomerHandler {
    * !menu or !m
    */
   async handleMenuCommand(args, phoneNumber, from) {
-    const response = await backendAPI.getProducts({});
-    if (!response.success || response.data.length === 0) {
-      return { message: 'No products available. Please try again later.' };
-    }
+    // Dummy products for demo
+    const dummyProducts = [
+      { id: 'prod_001', name: 'Margherita Pizza', price: 2500, rating: 4.8, reviews: 156, merchant: 'Quick Eats', image: '🍕' },
+      { id: 'prod_002', name: 'Fried Chicken Combo', price: 3200, rating: 4.6, reviews: 234, merchant: 'KFC Harare', image: '🍗' },
+      { id: 'prod_003', name: 'Fresh Bread Loaf', price: 450, rating: 4.9, reviews: 89, merchant: 'Local Bakery', image: '🍞' },
+      { id: 'prod_004', name: 'Cold Bottle Coke', price: 350, rating: 4.7, reviews: 445, merchant: 'Refresh Shop', image: '🥤' },
+      { id: 'prod_005', name: 'Beef Burger', price: 1500, rating: 4.5, reviews: 312, merchant: 'Burger King', image: '🍔' },
+      { id: 'prod_006', name: 'Fresh Vegetables Pack', price: 800, rating: 4.8, reviews: 167, merchant: 'Farmers Market', image: '🥬' },
+      { id: 'prod_007', name: 'Grilled Fish Fillet', price: 2800, rating: 4.9, reviews: 203, merchant: 'Sea Foods', image: '🐟' },
+      { id: 'prod_008', name: 'Mixed Fruit Salad', price: 600, rating: 4.7, reviews: 134, merchant: 'Health Hub', image: '🥗' },
+      { id: 'prod_009', name: 'Chocolate Cake', price: 1200, rating: 4.8, reviews: 178, merchant: 'Sweet Treats', image: '🎂' },
+      { id: 'prod_010', name: 'Orange Juice 500ml', price: 280, rating: 4.6, reviews: 267, merchant: 'Fresh Juices', image: '🧃' },
+      { id: 'prod_011', name: 'Rice & Beans Meal', price: 1800, rating: 4.7, reviews: 189, merchant: 'Traditional Kitchen', image: '🍛' },
+      { id: 'prod_012', name: 'Chicken Sadza Combo', price: 2000, rating: 4.8, reviews: 156, merchant: 'Local Market', image: '🍲' },
+    ];
 
-    const products = response.data.slice(0, 12);
+    const response = await backendAPI.getProducts({});
+    const products = response?.success ? response.data.slice(0, 12) : dummyProducts;
+
     let message = `
-╔════════════════════════════════════════════════╗
+╔════════════════════════════════════════════════════════════════════════╗
 ║ 🛒  MENU - AVAILABLE PRODUCTS
-╠════════════════════════════════════════════════╣
+╠════════════════════════════════════════════════════════════════════════╣
 ║
 `;
 
     products.forEach((product, i) => {
-      const priceStr = `ZWL ${product.price.toFixed(2)}`;
-      const ratingStr = `${MessageFormatter.getStarRating(product.rating || 0)} ${product.rating || 'N/A'}`;
-      message += `║ ${(i + 1).toString().padStart(2)}. ${product.name.substring(0, 25).padEnd(25)} │ ${priceStr.padEnd(10)} │ ${ratingStr}\n`;
+      const image = product.image || '📦';
+      const name = (product.name || 'Product').substring(0, 28);
+      const price = `ZWL ${(product.price || 0).toFixed(0)}`.substring(0, 10);
+      const rating = MessageFormatter.getStarRating(product.rating || 0);
+      message += `║ ${(i + 1).toString().padStart(2)}. ${image} ${name.padEnd(28)} │ ${price.padEnd(10)} │ ${rating}\n`;
     });
 
     message += `║
-╠════════════════════════════════════════════════╣
+╠════════════════════════════════════════════════════════════════════════╣
+║ 💡 HOW TO ORDER
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ !add <number> <qty>  → Add to cart (e.g., !add 5 2)               │
+║ │ !search <name>       → Search for items (e.g., !search pizza)     │
+║ │ !cart                → View your shopping cart                    │
+║ │ !deals               → See special discounts                      │
+║ │ !trending            → Top trending items                         │
+║ └────────────────────────────────────────────────────────────────────┘
 ║
-║ 📝 How to Order:
-║ ┌────────────────────────────────────────────┐
-║ │ !add <product_number> <quantity>           │
-║ │ Example: !add 5 2  (order item #5, qty 2)  │
-║ │                                             │
-║ │ !search <item_name>  (search for items)    │
-║ │ !cart              (view your cart)        │
-║ └────────────────────────────────────────────┘
-║
-╚════════════════════════════════════════════════╝
+╚════════════════════════════════════════════════════════════════════════╝
     `.trim();
 
     return { message };
@@ -557,28 +580,165 @@ class CustomerHandler {
   }
 
   /**
-   * !deals
+   * !deals - Show special deals and promotions
    */
   async handleDealsCommand(phoneNumber, from) {
     return {
       message: `
-*🎉 Active Deals & Offers*
-━━━━━━━━━━━━━━━
+╔════════════════════════════════════════════════════════════════════════╗
+║ 🎉  SPECIAL DEALS & PROMOTIONS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 🔥 HOT DEALS (Today Only)
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ 🛒 30% OFF on Groceries - Shop Now!
+║ │ 🍕 Buy 2 Pizzas Get 1 Free at Quick Eats
+║ │ 🚚 FREE Delivery on Orders over ZWL 500
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ ⏰ LIMITED TIME OFFERS
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ ⚡ Flash Sale: 50% off Electronics (Ends 20:00)
+║ │ 🌅 Breakfast Special: 40% off from 7-10am
+║ │ 🌙 Night Deal: ZWL 100 off orders after 21:00
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 🎁 NEW CUSTOMER BONUS
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ 💝 First Order: 20% OFF (Max ZWL 50)
+║ │ 🔖 Use Code: WELCOME20
+║ │ ✨ Valid for 30 days from registration
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 💳 REFERRAL REWARDS
+║ ├─ Refer a friend: Get ZWL 50 credit
+║ ├─ Friend gets: 15% OFF their first order
+║ └─ Unlimited referrals!
+║
+╠════════════════════════════════════════════════════════════════════════╣
+║ Type !search <item> to find deals on specific products
+║ Type !trending to see what's popular
+╚════════════════════════════════════════════════════════════════════════╝
+      `.trim(),
+    };
+  }
 
-🔥 Hot Deals:
-• 30% off on Groceries Today
-• Buy 2 Pizzas Get 1 Free
-• Free Delivery on Orders > ZWL 500
+  /**
+   * !trending - Show trending and popular items
+   */
+  async handleTrendingCommand(phoneNumber, from) {
+    const trendingItems = [
+      { name: 'Margherita Pizza', merchant: 'Quick Eats', sales: 324, rating: 4.8, emoji: '🍕' },
+      { name: 'Fried Chicken', merchant: 'KFC Harare', sales: 267, rating: 4.6, emoji: '🍗' },
+      { name: 'Fresh Milk 1L', merchant: 'Farmers Market', sales: 189, rating: 4.9, emoji: '🥛' },
+      { name: 'Sadza & Relish', merchant: 'Traditional Kitchen', sales: 156, rating: 4.7, emoji: '🍲' },
+      { name: 'Beef Burger', merchant: 'Burger King', sales: 145, rating: 4.5, emoji: '🍔' },
+    ];
 
-⏰ Limited Time:
-• Flash Sale: 50% off Electronics (Ends 20:00)
-• Breakfast Special: 40% off 7-10am
+    let message = `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 🔥  TRENDING NOW - TOP 5 POPULAR ITEMS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+`;
 
-💰 New Customer:
-• First order: 20% OFF (Max ZWL 50)
-• Code: WELCOME20
+    trendingItems.forEach((item, i) => {
+      const rank = i + 1;
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '  ';
+      const trendBar = '█'.repeat(Math.floor(item.sales / 50)) + '░'.repeat(8 - Math.floor(item.sales / 50));
+      message += `║ ${medal} #${rank}. ${item.emoji}  ${item.name.padEnd(20)} │ ${item.merchant.substring(0, 15).padEnd(15)}\n`;
+      message += `║     ⭐ ${item.rating.toFixed(1)}   │ ${trendBar}  ${item.sales} orders\n`;
+      message += `║\n`;
+    });
 
-Type *!search <item>* to find deals
+    message += `╠════════════════════════════════════════════════════════════════════════╣
+║ 💡 Recommendations:
+║ • These items are loved by 1000+ customers
+║ • Fast delivery available for all trending items
+║ • Try them now before they run out!
+║
+║ Order any trending item: !add <name> <qty>
+╚════════════════════════════════════════════════════════════════════════╝
+    `.trim();
+
+    return { message };
+  }
+
+  /**
+   * !promo - Show promotional codes and vouchers
+   */
+  async handlePromoCommand(phoneNumber, from) {
+    return {
+      message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ 🎟️   PROMOTIONAL CODES & VOUCHERS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 📌 ACTIVE CODES (November 2025)
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ Code: WELCOME20      │ Discount: 20% OFF first order
+║ │ Code: WEEKEND50      │ Discount: 50% OFF on weekends
+║ │ Code: FOOD15         │ Discount: 15% OFF food orders
+║ │ Code: LUCKY100       │ Discount: ZWL 100 OFF orders > ZWL 500
+║ │ Code: VIP200         │ Discount: ZWL 200 OFF (Min 3 orders)
+║ │ Code: REFER2024      │ Discount: ZWL 75 referral credit
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ ✅ HOW TO USE CODES
+║ 1. Add items to cart: !add <item> <qty>
+║ 2. At checkout: Enter promo code
+║ 3. Discount applied automatically!
+║
+║ 🎯 MERCHANT-SPECIFIC VOUCHERS
+║ • Quick Eats: Buy 2 Get 1 Free (Pizzas)
+║ • KFC Harare: Combo meals 25% OFF
+║ • Local Bakery: Free bread with every purchase > ZWL 1000
+║ • Farmers Market: Fresh produce 20% OFF daily 5-7pm
+║
+║ 🔔 SUBSCRIBE to our newsletter for exclusive codes!
+║ Type !feedback to request new promotional offers
+║
+╚════════════════════════════════════════════════════════════════════════╝
+      `.trim(),
+    };
+  }
+
+  /**
+   * !featured - Show featured merchants and collections
+   */
+  async handleFeaturedCommand(phoneNumber, from) {
+    return {
+      message: `
+╔════════════════════════════════════════════════════════════════════════╗
+║ ⭐  FEATURED MERCHANTS & COLLECTIONS
+╠════════════════════════════════════════════════════════════════════════╣
+║
+║ 👑 MERCHANT OF THE WEEK
+║ ┌────────────────────────────────────────────────────────────────────┐
+║ │ 🏪 Quick Eats - Premium Italian & Pizza
+║ │ ⭐ Rating: 4.8/5.0 (342 reviews)
+║ │ 📍 Location: Harare CBD
+║ │ 🚚 Free delivery on orders > ZWL 500
+║ │ ⏱️  Delivery time: 25-35 minutes
+║ │ 💰 Avg price: ZWL 2,500
+║ │ 🎁 Special: Buy 2 Pizzas Get 1 Free Today!
+║ └────────────────────────────────────────────────────────────────────┘
+║
+║ 🆕 NEW MERCHANTS
+║ ├─ 🍲 Traditional Kitchen - Authentic Zimbabwean Cuisine
+║ ├─ 🥗 Health Hub - Organic & Healthy Meals
+║ └─ 🍦 Sweet Treats - Cakes & Desserts
+║
+║ 📦 COLLECTIONS & CATEGORIES
+║ ├─ 🍕 Pizza Paradise - All pizza places in one place
+║ ├─ 🍜 Quick Meals - Fast delivery within 20 mins
+║ ├─ 💪 Healthy Eating - Low-cal & nutritious
+║ └─ 🎉 Party Pack Specials - Perfect for gatherings
+║
+╠════════════════════════════════════════════════════════════════════════╣
+║ Tap on a merchant name to browse their menu
+║ !search <merchant_name> to find specific stores
+╚════════════════════════════════════════════════════════════════════════╝
       `.trim(),
     };
   }

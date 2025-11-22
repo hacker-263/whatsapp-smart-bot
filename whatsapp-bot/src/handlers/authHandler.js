@@ -41,6 +41,18 @@ class AuthHandler {
         case 'verify':
           return await this.handleVerifyCommand(args, from, phoneNumber);
         
+        case 'owner':
+          return await this.handleOwnerCommand(from, phoneNumber);
+        
+        case 'about':
+          return await this.handleAboutCommand(from, phoneNumber);
+        
+        case 'feedback':
+          return await this.handleFeedbackCommand(args.join(' '), from, phoneNumber);
+        
+        case 'stats':
+          return await this.handleStatsCommand(from, phoneNumber);
+        
         default:
           return null;
       }
@@ -344,9 +356,242 @@ Track your order status
 Usage: !track <order_id>
 Shows current order status
       `.trim(),
+
+      owner: `
+*!owner*
+Get contact information of the bot owner
+
+Usage: !owner
+Displays owner contact and details
+      `.trim(),
+
+      about: `
+*!about*
+Learn about Smart WhatsApp Bot
+
+Usage: !about
+Shows platform information and features
+      `.trim(),
+
+      feedback: `
+*!feedback*
+Send feedback or report issues
+
+Usage: !feedback <your message>
+Example: !feedback The app is amazing!
+      `.trim(),
+
+      stats: `
+*!stats*
+View platform statistics
+
+Usage: !stats
+Shows user count, orders, revenue, etc.
+      `.trim(),
     };
 
     return helps[command] || `❌ Command not found: ${command}`;
+  }
+
+  /**
+   * !owner - Get owner contact information
+   */
+  async handleOwnerCommand(from, phoneNumber) {
+    return {
+      message: `
+╔══════════════════════════════════════════════════════════════════════╗
+║ 👨‍💼  BOT OWNER - CONTACT INFORMATION
+╠══════════════════════════════════════════════════════════════════════╣
+║
+║ 🎯 Name:           *Hxcker-263*
+║ 📱 WhatsApp:       *+263781564004*
+║ 💼 Role:           Platform Developer & Owner
+║ 🌐 Specialty:      WhatsApp Commerce Solutions
+║
+╠══════════════════════════════════════════════════════════════════════╣
+║ 📞 QUICK CONTACT
+║ ┌──────────────────────────────────────────────────────────────────┐
+║ │ Click here to chat: wa.me/263781564004                           │
+║ │ Available: 24/7 for business inquiries and support               │
+║ └──────────────────────────────────────────────────────────────────┘
+║
+╠══════════════════════════════════════════════════════════════════════╣
+║ 💡 SERVICES OFFERED
+║ ┌──────────────────────────────────────────────────────────────────┐
+║ │ • 🤖 WhatsApp Bot Development & Customization                   │
+║ │ • 🏪 E-commerce Solutions & Integration                         │
+║ │ • 📊 Business Analytics & Reporting                             │
+║ │ • 🔗 API Integration & Automation                               │
+║ │ • ⚙️  Custom Automation & Workflows                             │
+║ │ • 🚀 Deployment & Hosting Solutions                            │
+║ └──────────────────────────────────────────────────────────────────┘
+║
+╠══════════════════════════════════════════════════════════════════════╣
+║ 🏆 ACHIEVEMENTS
+║ ├─ 2,500+ Active Users
+║ ├─ 187 Merchants Onboarded
+║ ├─ 8,900+ Successful Orders
+║ ├─ 99.9% Platform Uptime
+║ └─ Serving Zimbabwe & Beyond
+║
+╚══════════════════════════════════════════════════════════════════════╝
+
+💬 Feel free to reach out for collaboration, support, or inquiries!
+      `.trim(),
+      contact: {
+        name: 'Hxcker-263',
+        phone: '+263781564004',
+      }
+    };
+  }
+
+  /**
+   * !about - Platform information
+   */
+  async handleAboutCommand(from, phoneNumber) {
+    return {
+      message: `
+╔══════════════════════════════════════════════════════════════════════╗
+║ ℹ️  ABOUT SMART WHATSAPP BOT
+╠══════════════════════════════════════════════════════════════════════╣
+║
+║ 🚀 Platform:       Smart E-Commerce Bot
+║ 📱 Channel:        WhatsApp Messaging
+║ 🌍 Region:         Zimbabwe & Beyond
+║ 💡 Purpose:        Connect Customers & Merchants Seamlessly
+║
+╠══════════════════════════════════════════════════════════════════════╣
+║ ✨ CORE FEATURES
+║ ┌──────────────────────────────────────────────────────────────────┐
+║ │ 🛍️  Smart Shopping & Browse Products                            │
+║ │ 🔍 Intelligent Search & Discovery                               │
+║ │ 🏪 Multi-Merchant Support                                       │
+║ │ 💳 Seamless Checkout Process                                    │
+║ │ 📦 Real-time Order Tracking                                     │
+║ │ ⭐ Ratings & Reviews System                                     │
+║ │ 📊 Merchant Analytics Dashboard                                 │
+║ │ 🔔 Instant Notifications                                        │
+║ └──────────────────────────────────────────────────────────────────┘
+║
+╠══════════════════════════════════════════════════════════════════════╣
+║ 👥 SUPPORTED USERS
+║ • 🛍️ Customers - Shop anytime, anywhere
+║ • 🏪 Merchants - Manage store & sales efficiently
+║ • 👨‍💼 Admins - Oversee entire platform
+║
+╠══════════════════════════════════════════════════════════════════════╣
+║ 🎯 OUR VISION
+║ Making e-commerce accessible via WhatsApp for everyone!
+║ Empowering businesses through smart technology.
+║
+║ Type !owner to get in touch with the developer
+║
+╚══════════════════════════════════════════════════════════════════════╝
+      `.trim()
+    };
+  }
+
+  /**
+   * !feedback <message> - Send feedback
+   */
+  async handleFeedbackCommand(message, from, phoneNumber) {
+    if (!message) {
+      return {
+        message: `
+╔══════════════════════════════════════════════════════════════════════╗
+║ 💬  SEND US YOUR FEEDBACK
+╠══════════════════════════════════════════════════════════════════════╣
+║
+║ We'd love to hear from you! Your feedback helps us improve.
+║
+║ 📝 Usage: !feedback <your message>
+║
+║ 📌 Examples:
+║    !feedback The bot is amazing and easy to use!
+║    !feedback I found a bug in the search feature
+║    !feedback Can you add a wishlist feature?
+║
+║ 💡 Tips:
+║    • Be specific and descriptive
+║    • Tell us what could be improved
+║    • Share your ideas and suggestions
+║
+╚══════════════════════════════════════════════════════════════════════╝
+        `.trim()
+      };
+    }
+
+    // Save feedback to cache
+    await cache.addCommandHistory(phoneNumber, `feedback: ${message}`);
+
+    return {
+      message: `
+╔══════════════════════════════════════════════════════════════════════╗
+║ ✅  THANK YOU FOR YOUR FEEDBACK!
+╠══════════════════════════════════════════════════════════════════════╣
+║
+║ Your feedback has been recorded! 🎉
+║
+║ 📝 Message:
+║ "${message}"
+║
+║ ✍️ We'll review it and improve the platform.
+║ 💌 Thanks for using Smart WhatsApp Bot! 💙
+║
+║ Have more suggestions? Send !feedback again!
+║
+╚══════════════════════════════════════════════════════════════════════╝
+      `.trim()
+    };
+  }
+
+  /**
+   * !stats - Show platform statistics
+   */
+  async handleStatsCommand(from, phoneNumber) {
+    // Dummy statistics (replace with actual data from backend)
+    const stats = {
+      totalUsers: 2543,
+      totalMerchants: 187,
+      totalOrders: 8934,
+      totalRevenue: 245600,
+      avgOrderValue: 27.5,
+      activeNow: 342,
+      avgRating: 4.8,
+      topCategory: 'Fresh Food',
+      topMerchant: 'Local Mart',
+      monthlyGrowth: 15,
+    };
+
+    return {
+      message: `
+╔══════════════════════════════════════════════════════════════════════╗
+║ 📊  PLATFORM STATISTICS
+╠══════════════════════════════════════════════════════════════════════╣
+║
+║ 👥 USERS
+║ ┌──────────────────────────────────────────────────────────────────┐
+║ │ Total Users:           ${String(stats.totalUsers).padEnd(30)} 👥
+║ │ Active Merchants:      ${String(stats.totalMerchants).padEnd(30)} 🏪
+║ │ Active Right Now:      ${String(stats.activeNow + ' 🟢').padEnd(30)}
+║ └──────────────────────────────────────────────────────────────────┘
+║
+║ 📦 ORDERS & SALES
+║ ┌──────────────────────────────────────────────────────────────────┐
+║ │ Total Orders:          ${String(stats.totalOrders.toLocaleString()).padEnd(27)} 📦
+║ │ Total Revenue:         ZWL ${String(stats.totalRevenue.toLocaleString()).padEnd(27)}
+║ │ Average Order Value:   ZWL ${String(stats.avgOrderValue).padEnd(27)}
+║ └──────────────────────────────────────────────────────────────────┘
+║
+║ 📈 INSIGHTS
+║ ├─ Growth Trend:        ↗️  ${stats.monthlyGrowth}% this month
+║ ├─ Average Rating:      ⭐ ${stats.avgRating}/5.0
+║ ├─ Top Category:        ${stats.topCategory} 🌟
+║ └─ Top Merchant:        ${stats.topMerchant} 👑
+║
+╚══════════════════════════════════════════════════════════════════════╝
+      `.trim()
+    };
   }
 }
 
